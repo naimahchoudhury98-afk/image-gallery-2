@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect } from 'react'
 import './App.css'
+import Gallery from './Gallery'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [images, setImages] = useState([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    async function fetchData() {
+      const res = await fetch('https://week-6-api.vercel.app/api/images')
+      const data = await res.json()
+      setImages(data)
+    }
+    
+    fetchData()
+  }, [])
+
+
+
+  function handleThumbnailClick(index) {
+    setCurrentIndex(index)
+  }
+
+  const filteredImages = images.filter((image) => 
+  image.alt.toLowerCase().includes(searchTerm.toLowerCase())
+)
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div>
+      <h1>Image Gallery</h1>
+
+       <div>
+      <input 
+        type="text"
+        placeholder="Search images..."
+        value={searchTerm}
+        onChange={(e) => {
+  setSearchTerm(e.target.value)
+  setCurrentIndex(0)
+}}
+
+        style={{
+          padding: '10px',
+          fontSize: '16px',
+          width: '300px',
+          marginBottom: '20px'
+        }}
+      />
+    </div>
+      
+      <Gallery 
+        images={filteredImages}
+        currentIndex={currentIndex}
+        onThumbnailClick={handleThumbnailClick}
+      />
+
+      {filteredImages.length > 0 && (
+        <div className="large-image">
+          <h2>Selected Image:</h2>
+          <img 
+            src={filteredImages[currentIndex].url} 
+            alt={filteredImages[currentIndex].alt}
+            style={{ maxWidth: '600px' }}
+          />
+        </div>
+      )}
+    </div>
   )
 }
-
-export default App
