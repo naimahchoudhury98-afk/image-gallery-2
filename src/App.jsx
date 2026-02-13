@@ -7,6 +7,10 @@ export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
 
+  const filteredImages = images.filter((image) => 
+    image.alt.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   useEffect(() => {
     async function fetchData() {
       const res = await fetch('https://week-6-api.vercel.app/api/images')
@@ -17,38 +21,48 @@ export default function App() {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    function handleKeyPress(e) {
+      if (filteredImages.length === 0) return
+      
+      if (e.key === 'ArrowLeft') {
+        setCurrentIndex((prev) => 
+          prev === 0 ? filteredImages.length - 1 : prev - 1
+        )
+      } else if (e.key === 'ArrowRight') {
+        setCurrentIndex((prev) => 
+          prev === filteredImages.length - 1 ? 0 : prev + 1
+        )
+      }
+    }
 
+    window.addEventListener('keydown', handleKeyPress)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress)
+    }
+  }, [filteredImages])
 
   function handleThumbnailClick(index) {
     setCurrentIndex(index)
   }
 
-  const filteredImages = images.filter((image) => 
-  image.alt.toLowerCase().includes(searchTerm.toLowerCase())
-)
-
   return (
-    <div>
-      <h1>Image Gallery</h1>
-
-       <div>
-      <input 
-        type="text"
-        placeholder="Search images..."
-        value={searchTerm}
-        onChange={(e) => {
-  setSearchTerm(e.target.value)
-  setCurrentIndex(0)
-}}
-
-        style={{
-          padding: '10px',
-          fontSize: '16px',
-          width: '300px',
-          marginBottom: '20px'
-        }}
-      />
-    </div>
+    <div className="app">
+      <h1>Frog-tography Collection</h1>
+      <p className="subtitle">Discover the world of frogs through lenses.</p>
+      <p className="instructions">Click on a thumbnail or use ← → arrow keys to navigate</p>      
+      <div className="search-container">
+        <input 
+          type="text"
+          placeholder="Search images..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value)
+            setCurrentIndex(0)
+          }}
+        />
+      </div>
       
       <Gallery 
         images={filteredImages}
@@ -62,7 +76,6 @@ export default function App() {
           <img 
             src={filteredImages[currentIndex].url} 
             alt={filteredImages[currentIndex].alt}
-            style={{ maxWidth: '600px' }}
           />
         </div>
       )}
